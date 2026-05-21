@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@200;300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --gold: #D4AF37;
+  --charcoal: #2D2D2D;
+  --cream: #FAF7F2;
+  --lavender: #E8E4F0;
+  --accent-lavender: #C9B8E8;
+  --accent-peach: #F5D5C5;
+  --muted: #8A7F74;
+}
+
+* { cursor: none !important; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--charcoal);
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* Custom cursor */
+#cursor {
+  position: fixed;
+  width: 28px; height: 28px;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s var(--ease-out), height 0.3s var(--ease-out);
+  mix-blend-mode: difference;
+}
+#cursor-dot {
+  position: fixed;
+  width: 5px; height: 5px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+}
+
+/* Film grain overlay */
+#grain {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* Sparkles */
+.sparkle {
+  position: absolute;
+  background: var(--gold);
+  clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  opacity: 0;
+  animation: sparkleFly 6s ease-in-out infinite;
+}
+@keyframes sparkleFly {
+  0% { opacity: 0; transform: translateY(20px) scale(0.3) rotate(0deg); }
+  20% { opacity: 0.85; }
+  80% { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.2) rotate(180deg); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--gold); opacity: 0.4; border-radius: 2px; }
+
+/* Section utility */
+.section-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--charcoal);
+}
+
+/* Gold divider */
+.gold-divider {
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 28px auto;
+}
+
+/* Hero text transition */
+.hero-scene {
+  position: absolute;
+  width: 90%; max-width: 820px;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* Book card 3D */
+.book-card {
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+}
+
+/* Scroll-triggered animations */
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+}
+.animate-fade-up.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
