@@ -90,12 +90,4 @@ export default function HeroSection() {
             </div>
           ))}
         </div>
-        <div ref={scrollHintRef} style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, transition: 'opacity 0.6s' }}>
-          <div style={{ width: 1, height: 48, background: 'linear-gradient(to bottom,rgba(255,255,255,0.5),transparent)', animation: 'scrollPulse 2.2s ease-in-out infinite' }} />
-          <span style={{ fontFamily: 'Inter', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>Scroll to Begin</span>
-        </div>
-      </div>
-      <style>{SCROLL_PULSE_CSS}</style>
-    </section>
-  )
-}
+        <div ref={scrollHintRef} style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-5
