@@ -1,93 +1,94 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { motion } from 'framer-motion'
 
 gsap.registerPlugin(ScrollTrigger)
 
-interface Scene {
-  id: string
-  start: number
-  peak: number
-  end: number
-  pretitle?: string
-  headline: string
-  sub?: string
-  isCta?: boolean
+interface Book {
+  id: number
+  title: string
+  genre: string
+  desc: string
+  price: string
+  gradient: string
+  glowColor: string
+  emoji: string
+  src: string
 }
 
-const SCENES: Scene[] = [
-  { id: 's1', start: 0.05, peak: 0.10, end: 0.18, pretitle: 'A Story For Every Child', headline: 'Turn Their Memory\nInto A Story' },
-  { id: 's2', start: 0.20, peak: 0.25, end: 0.33, headline: 'A cherished moment.\nTheir photo. A quiet dream.', sub: 'Woven together into pages that feel like magic.' },
-  { id: 's3', start: 0.40, peak: 0.45, end: 0.53, pretitle: 'Illustrated Just For Them', headline: 'Every page, drawn\nto match their smile' },
-  { id: 's4', start: 0.60, peak: 0.65, end: 0.73, headline: 'Not just a book.\nA bedtime ritual.', sub: "Stories they'll ask for night after night, year after year." },
-  { id: 's5', start: 0.82, peak: 0.88, end: 1.00, pretitle: 'Begin The Adventure', headline: 'Create Their Story', isCta: true },
+const BOOKS: Book[] = [
+  { id: 1, title: 'The Magical Stardust Forest', genre: 'Fantasy Adventure', desc: 'A brave young explorer discovers a hidden forest where every star has a name — and one star has been waiting just for them.', price: '$49', gradient: 'linear-gradient(145deg,#E8F0D8,#C8DFB4)', glowColor: 'rgba(201,184,232,0.4)', emoji: '🌟', src: '/books/stardust-forest.png' },
+  { id: 2, title: 'The Dream Keeper', genre: 'Bedtime Classic', desc: 'Every night a little guardian collects the sweetest dreams — until the night they must save their very own dreamland from fading away.', price: '$49', gradient: 'linear-gradient(145deg,#D8E8F0,#B4C8DF)', glowColor: 'rgba(180,200,223,0.45)', emoji: '🌙', src: '/books/dream-keeper.png' },
+  { id: 3, title: 'Eternal Legends', genre: 'Epic Quest', desc: "An ancient prophecy foretold a hero would rise — and now the whole kingdom discovers it's been about your child all along.", price: '$49', gradient: 'linear-gradient(145deg,#F0D8E8,#DFB4C8)', glowColor: 'rgba(223,180,200,0.45)', emoji: '⚔️', src: '/books/eternal-legends.png' },
 ]
 
-const SCROLL_PULSE_CSS = `@keyframes scrollPulse { 0%, 100% { transform: scaleY(1); opacity: 0.5; } 50% { transform: scaleY(1.4); opacity: 1; } }`
+const CARD_STYLES = `.book-card:hover { box-shadow: 0 32px 80px rgba(45,45,45,0.14), 0 0 0 1px rgba(212,175,55,0.25); } .book-glow { opacity: 0; transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1); pointer-events: none; } .book-card:hover .book-glow { opacity: 1; } .book-card:hover .book-arrow { background: #D4AF37; color: #2D2D2D; transform: rotate(45deg); }`
 
-export default function HeroSection() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const sceneRefs = useRef<Map<string, HTMLDivElement>>(new Map())
-  const scrollHintRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    const section = sectionRef.current
-    if (!video || !section) return
-
-    video.load()
-    const onMeta = () => { video.pause(); video.currentTime = 0 }
-    video.addEventListener('loadedmetadata', onMeta)
-
-    const st = ScrollTrigger.create({
-      trigger: section,
-      start: 'top top',
-      end: '+=3000',
-      scrub: 1,
-      onUpdate(self) {
-        const p = self.progress
-        if (scrollHintRef.current) {
-          scrollHintRef.current.style.opacity = p < 0.04 ? '1' : String(Math.max(0, 1 - (p - 0.04) * 20))
-        }
-        if (video.duration && !isNaN(video.duration)) {
-          const target = p * video.duration
-          if (Math.abs(video.currentTime - target) > 0.05) {
-            video.currentTime = target
-          }
-        }
-        SCENES.forEach(({ id, start, peak, end }) => {
-          const el = sceneRefs.current.get(id)
-          if (!el) return
-          let alpha = 0, ty = 0
-          if (p >= start && p < peak) { const t = (p - start) / (peak - start); alpha = t; ty = (1 - t) * 30 }
-          else if (p >= peak && p < end) { const t = (p - peak) / (end - peak); alpha = 1 - t; ty = -t * 20 }
-          el.style.opacity = String(alpha)
-          el.style.transform = `translateY(${ty}px)`
-        })
-      },
-    })
-
-    return () => { video.removeEventListener('loadedmetadata', onMeta); st.kill() }
-  }, [])
-
-  const setSceneRef = (id: string) => (el: HTMLDivElement | null) => { if (el) sceneRefs.current.set(id, el) }
-
+function BookCard({ book, index }: { book: Book; index: number }) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return
+    const r = cardRef.current.getBoundingClientRect()
+    const x = (e.clientX - r.left - r.width / 2) / r.width
+    const y = (e.clientY - r.top - r.height / 2) / r.height
+    gsap.to(cardRef.current, { rotateY: x * 8, rotateX: -y * 5, duration: 0.5, ease: 'power2.out', transformPerspective: 800 })
+  }
+  const handleMouseLeave = () => {
+    if (!cardRef.current) return
+    gsap.to(cardRef.current, { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'elastic.out(1,0.6)' })
+  }
   return (
-    <section ref={sectionRef} style={{ height: '400vh', position: 'relative' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
-        <video ref={videoRef} src="/hero.mp4" muted playsInline preload="auto" poster="/hero-poster.jpg" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.28))', zIndex: 1 }} />
-        <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.55) 100%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', inset: 0, zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', pointerEvents: 'none' }}>
-          {SCENES.map(({ id, pretitle, headline, sub, isCta }) => (
-            <div key={id} ref={setSceneRef(id)} style={{ position: 'absolute', width: '90%', maxWidth: 820, opacity: 0, pointerEvents: isCta ? 'all' : 'none' }}>
-              {pretitle && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 400, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#C9B8E8', display: 'block', marginBottom: 20 }}>{pretitle}</span>}
-              <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, fontStyle: sub && !isCta ? 'italic' : 'normal', fontSize: sub ? 'clamp(1.6rem,3.5vw,3rem)' : 'clamp(2.6rem,5.5vw,5rem)', lineHeight: 1.1, color: '#FFFFFF', textShadow: '0 2px 32px rgba(0,0,0,0.3)', whiteSpace: 'pre-line', margin: 0 }}>{headline}</h1>
-              {sub && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.85rem,1.5vw,1rem)', fontWeight: 300, color: 'rgba(255,255,255,0.78)', letterSpacing: '0.08em', marginTop: 18, lineHeight: 1.8 }}>{sub}</p>}
-              {isCta && <a href="#books" style={{ display: 'inline-block', marginTop: 44, padding: '18px 56px', border: '1px solid #D4AF37', color: '#D4AF37', fontFamily: 'Inter, sans-serif', fontSize: 12, letterSpacing: '0.3em', textTransform: 'uppercase', textDecoration: 'none', transition: 'background 0.5s, color 0.5s', pointerEvents: 'all', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#D4AF37'; e.currentTarget.style.color = '#2D2D2D' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#D4AF37' }}>Start Creating — It's Magical</a>}
-            </div>
-          ))}
+    <motion.div initial={{ opacity: 0, y: 48 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}>
+      <div ref={cardRef} className="book-card" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ background: '#fff', borderRadius: 2, overflow: 'hidden', transformStyle: 'preserve-3d', transition: 'box-shadow 0.6s cubic-bezier(0.16,1,0.3,1)' }}>
+        <div style={{ position: 'relative', aspectRatio: '4/5', background: book.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <div style={{ textAlign: 'center', padding: 32 }}>
+            <div style={{ fontSize: 72, marginBottom: 12, opacity: 0.6 }}>{book.emoji}</div>
+            <div style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: '1.3rem', fontStyle: 'italic', color: 'rgba(45,45,45,0.65)', lineHeight: 1.3 }}>{book.title}</div>
+            <div style={{ marginTop: 20, width: 70, height: 70, borderRadius: '50%', background: 'rgba(201,184,232,0.35)', border: '2px dashed rgba(201,184,232,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(45,45,45,0.45)', margin: '20px auto 0' }}>Your Child</div>
+          </div>
+          <div className="book-glow" style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 50% 50%,${book.glowColor},transparent 70%)` }} />
         </div>
-        <div ref={scrollHintRef} style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-5
+        <div style={{ padding: '28px 28px 24px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'linear-gradient(135deg,rgba(201,184,232,0.2),rgba(245,213,197,0.2))', border: '1px solid rgba(212,175,55,0.2)', borderRadius: 40, padding: '5px 14px', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8A7F74', marginBottom: 14 }}>
+            <span style={{ color: '#D4AF37', fontSize: 9 }}>&#10022;</span>
+            {book.genre}
+          </div>
+          <h3 style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: '1.55rem', fontWeight: 400, color: '#2D2D2D', marginBottom: 10, lineHeight: 1.2 }}>{book.title}</h3>
+          <p style={{ fontFamily: 'Inter,sans-serif', fontSize: '0.82rem', fontWeight: 300, color: '#8A7F74', lineHeight: 1.8, marginBottom: 24 }}>{book.desc}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(212,175,55,0.12)', paddingTop: 18 }}>
+            <div>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8A7F74' }}>Starting from</span>
+              <strong style={{ display: 'block', fontFamily: 'Cormorant Garamond,serif', fontSize: '1.05rem', fontStyle: 'italic', fontWeight: 500, color: '#2D2D2D' }}>{book.price}</strong>
+            </div>
+            <div className="book-arrow" style={{ width: 36, height: 36, border: '1px solid rgba(212,175,55,0.4)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37', fontSize: 14, transition: 'background 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1)' }}>{'\u2192'}</div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export default function BooksSection() {
+  return (
+    <section id="books" style={{ padding: '140px 48px 120px', background: 'linear-gradient(180deg,#FAF7F2 0%,#E8E4F0 100%)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 72, flexWrap: 'wrap', gap: 24 }}>
+        <div>
+          <motion.span className="section-eyebrow" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>Our Collection</motion.span>
+          <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.1 }} style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 'clamp(2rem,4vw,3.6rem)', fontWeight: 400, color: '#2D2D2D', lineHeight: 1.15, marginBottom: 18 }}>
+            Stories as unique<br />as your child
+          </motion.h2>
+          <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: 0.2 }} style={{ fontFamily: 'Inter', fontSize: '0.9rem', fontWeight: 300, color: '#8A7F74', lineHeight: 1.9, maxWidth: 500 }}>
+            Each book is a world built around one extraordinary child — your child. Choose a story, add their name and photo, and watch the magic unfold.
+          </motion.p>
+        </div>
+        <motion.a href="#" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.3 }} style={{ fontFamily: 'Inter', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#2D2D2D', textDecoration: 'none', borderBottom: '1px solid #D4AF37', paddingBottom: 4 }}>View All Titles</motion.a>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 32 }}>
+        {BOOKS.map((book, i) => (<BookCard key={book.id} book={book} index={i} />))}
+      </div>
+      <style>{CARD_STYLES}</style>
+    </section>
+  )
+}
